@@ -1,0 +1,28 @@
+[project]
+authors = ["Nodar Gogoberidze <gnodar01@gmail.com>"]
+channels = ["conda-forge"]
+description = "Add a short description here"
+name = "large_image"
+platforms = ["osx-64"]
+version = "0.1.0"
+
+[tasks]
+ip = { cmd = "ipython", env = { MPLBACKEND = "module://imgcat" } }
+
+[activation]
+env = { JAVA_OPTS = "-Djna.library.path=$PIXI_PROJECT_ROOT/.pixi/envs/default/lib/", JAVA_HOME = "$PIXI_PROJECT_ROOT/.pixi/envs/dev/lib/jvm", JDK_HOME = "$PIXI_PROJECT_ROOT/.pixi/envs/dev/lib/jvm" }
+
+[dependencies]
+python = ">=3.9,<3.11"
+ipykernel = ">=6.29.5,<7"
+jupyter = ">=1.1.1,<2"
+ipython = ">=8.32.0,<9"
+openjdk = ">=23.0.1,<24"
+
+[pypi-dependencies]
+# dumb python-bioformats -> python-javabridge dependency makes me need to manually specifiy setuptools, numpy and cython bellow
+setuptools = "*"
+numpy = ">=1.20.2,<1.25.0"
+cython = ">=0.29.16,<3.0.0"
+large-image = { version = ">=1.31.1, <2", extras = ["bioformats", "ometiff", "pil", "tiff", "tifffile", "zarr", "converter", "colormaps", "jupyter", "tiledoutput", "vips", "performance"] }
+imgcat = ">=0.6.0, <0.7"
