@@ -8,6 +8,7 @@ version = "0.1.0"
 
 [tasks]
 ip = { cmd = "ipython", env = { MPLBACKEND = "module://imgcat" } }
+ips = { cmd = "ipython", env = { MPLBACKEND = "module://imgcat" , MPLTERM = "proto=sixel" } }
 
 [activation]
 env = { JAVA_OPTS = "-Djna.library.path=$PIXI_PROJECT_ROOT/.pixi/envs/default/lib/", JAVA_HOME = "$PIXI_PROJECT_ROOT/.pixi/envs/dev/lib/jvm", JDK_HOME = "$PIXI_PROJECT_ROOT/.pixi/envs/dev/lib/jvm" }
@@ -26,3 +27,4 @@ numpy = ">=1.20.2,<1.25.0"
 cython = ">=0.29.16,<3.0.0"
 large-image = { version = ">=1.31.1, <2", extras = ["bioformats", "ometiff", "pil", "tiff", "tifffile", "zarr", "converter", "colormaps", "jupyter", "tiledoutput", "vips", "performance"] }
 imgcat = ">=0.6.0, <0.7"
+mplterm = { git = "git+https://github.com/anntzer/mplterm" }
