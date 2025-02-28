@@ -6,7 +6,7 @@ import sys
 import large_image
 import pprint
 import tty # linux/macOS only
-from time import sleep
+from math import ceil
 from pathlib import Path
 
 try:
@@ -19,6 +19,12 @@ except NameError:
     p = r / fn
 
     src = large_image.open(p)
+
+def srcMetadata():
+    return src.getInternalMetadata()
+
+def standardMetadata():
+    return src.getMetadata()
 
 def region(frame=0, left=0, top=0, width=1024, height=1024, maxWidth=1000, mime=False):
     global src
@@ -39,7 +45,7 @@ def region(frame=0, left=0, top=0, width=1024, height=1024, maxWidth=1000, mime=
 
 # z is the resolution level
 def tile(x,y,z):
-    meta = src.getMetadata()
+    meta = standardMetadata()
     levels = meta.get('levels', None)
     if not levels:
         print('bad thing')
@@ -50,36 +56,60 @@ def tile(x,y,z):
     return src.getTile(x,y,z, numpyAllowed='always', sparseFallback=False)
 
 def res():
-    meta = src.getMetadata()
-    levels = meta.get('levels', None)
+    meta = standardMetadata()
+    nlevels = meta.get('levels', None)
     sizeX = meta.get('sizeX', None)
     sizeY = meta.get('sizeY', None)
     tileWidth = meta.get('tileWidth', None)
     tileHeight = meta.get('tileHeight', None)
-    magnification = meta.get('magnification', None)
-    if not levels or not sizeX or not sizeY or not tileWidth or not tileHeight or not magnification:
+    native_magnification = meta.get('magnification', None)
+    if not nlevels or not sizeX or not sizeY or not tileWidth or not tileHeight or not native_magnification:
         print('bad thing')
         return
 
     resolutions = dict()
-    for i in range(levels):
-        scale_level = levels-i-1
-        scale_factor = 1/(2**scale_level)
-        resolutions[i] = dict(width=int(sizeX*scale_factor), height=int(sizeY*scale_factor), magnification=magnification*scale_factor)
+    #for i in range(nlevels):
+    #    scale_level = nlevels-i-1
+    #    # don't truncate here, magnification needs float
+    #    scale_factor = 1/(2**scale_level)
+    #    resolutions[i] = dict(width=int(sizeX*scale_factor), height=int(sizeY*scale_factor), magnification=native_magnification*scale_factor)
+    for level in range(nlevels):
+        mag = src.getMagnificationForLevel(level)
+        magnification = mag['magnification']
+        # DO NOT ACCESS tile['tile'] or tile['format'] - would loazy load actual data
+        tile = tile_n(magnification=magnification)
+
+        resolutions[level] = dict(
+                magnification = magnification,
+                width=int(sizeX / mag['scale']),
+                height=int(sizeY / mag['scale']),
+                # might be smaller than tileWidth/tileHeight because iamge at level might be smaller than that
+                # but it's the max width/height of a tile at that level, because nth=0
+                max_tile_width=tile['width'],
+                max_tile_height=tile['height'],
+                # number of tiles in [x|y] direction
+                n_tiles_x=tile['iterator_range']['level_x_max'],
+                n_tiles_y=tile['iterator_range']['level_y_max'],
+                # ignoring level_[x|y]_min for now
+                # ignoring overlap for now
+        )
 
     return resolutions
 
-def tile_n(nth=0, frame=0, magnification=None):
+def tile_n(nth=0, frame=0, magnification=None, return_iter=False):
+    '''
+    warning: data is loaded lazily, when tile['tile'] or tile['format'] is accessed
+    '''
     if magnification is not None:
         scale = dict(magnification=magnification)
     else:
         scale = None
     itr = src.tileIterator( tile_position=nth, frame=frame, scale=scale, format=large_image.constants.TILE_FORMAT_NUMPY )
     try:
-        tile = next(itr)
+        tile = itr if return_iter else next(itr)
         return tile
     except:
-        print("No tile", "nth", nth, "frame", frame, "mag", magnification)
+        print("No tile", "nth", nth, "frame", frame, "mag", magnification, "level", level)
         return None
 
 ## DISPLAY ##
@@ -113,6 +143,7 @@ def showi():
         clear_screen()
         show(tile['tile'], width=12, height=12)
         display_tile = {k:v for k,v in tile.items() if k != 'tile'}
+
         pprint.pp(display_tile)
 
         key = get_single_key()
@@ -121,8 +152,12 @@ def showi():
             clear_screen()
             break
 
-def viewer():
-    meta = src.getMetadata()
+def viewer(debug=False):
+    meta = standardMetadata()
+    # tile width/height may be smaller depending on if we're at the edge of an image; these are just the ideal size
+    max_tile_width = meta.get('tileWidth', 1024)
+    max_tile_height = meta.get('tileHeight', 1024)
+
     nlevels = meta.get('levels', 0)
     nframes = len(meta.get('frames', []))
     resolutions = res()
@@ -136,12 +171,19 @@ def viewer():
     if tile is None:
         return
 
+
+    level_width = lambda lvl: resolutions()[lvl]['width']
+    level_height = lambda lvl: resolutions()[lvl]['height']
     tile_width = lambda t: t['width']
     tile_height = lambda t: t['height']
     # num tiles in x direction
     nx = lambda t: t['iterator_range']['level_x_max']
+    # idx of tile in x direction
+    ix = lambda t: t['tile_position']['level_x']
     # num tiles in y direction
     ny = lambda t: t['iterator_range']['level_y_max']
+    # idx of tile in y direction
+    iy = lambda t: t['tile_position']['level_y']
     # num of nth values
     nn = lambda t: nx(t) * ny(t)
 
@@ -151,8 +193,20 @@ def viewer():
         display_tile = {k:v for k,v in tile.items() if k != 'tile'}
         display_tile['frame_no'] = frame
         display_tile['frame_max'] = nframes
-        pprint.pp(display_tile)
-        pprint.pp(dict(nlevels=nlevels, nframes=nframes, level=level, frame=frame, nth=nth, tile_width=tile_width(tile), tile_height=tile_height(tile), nx=nx(tile), ny=ny(tile), nn=nn(tile)))
+
+        if debug:
+            pprint.pp(display_tile)
+            pprint.pp(dict(
+                nlevels=nlevels,
+                nframes=nframes,
+                level=level,
+                frame=frame,
+                nth=nth,
+                tile_width=tile_width(tile),
+                tile_height=tile_height(tile),
+                nx=nx(tile),
+                ny=ny(tile),
+                nn=nn(tile) ))
 
         key = get_single_key()
         key_ord = ord(key)
@@ -200,11 +254,25 @@ def viewer():
 
         #  up pyramid (downscale)
         elif key == 'u' or key == 'K':
-            level = max(0, level-1)
+            if level > 0:
+                level = max(0, level-1)
+
+                new_ix = ix(tile) // 2
+                new_iy = iy(tile) // 2
+                new_nx = resolutions[level]['n_tiles_x']
+
+                nth = new_iy * new_nx + new_ix
 
         # down pyramid (upscale)
         elif key == 'd' or key == 'J':
-            level = min(nlevels-1, level+1)
+            if level < (nlevels-1):
+                level += 1
+
+                new_ix = ix(tile) * 2
+                new_iy = iy(tile) * 2
+                new_nx = resolutions[level]['n_tiles_x']
+
+                nth = new_iy * new_nx + new_ix
 
         # ? - quit
         else:
