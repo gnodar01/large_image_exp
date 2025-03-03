@@ -12,7 +12,7 @@ from large_image.tilesource.tileiterator import LazyTileDict
 import matplotlib.pyplot as plt
 
 try:
-    if src:
+    if src: # type: ignore
         print("aready loaded src")
 except NameError:
     print("loading src")
