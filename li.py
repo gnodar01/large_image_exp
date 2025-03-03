@@ -1,13 +1,14 @@
+from typing import overload, Iterator, Literal 
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 import termios
 import sys
-import large_image
 import pprint
 import tty # linux/macOS only
-from math import ceil
 from pathlib import Path
+import large_image
+import large_image.constants
+from large_image.tilesource.tileiterator import LazyTileDict
 
 try:
     if src:
@@ -44,7 +45,7 @@ def region(frame=0, left=0, top=0, width=1024, height=1024, maxWidth=1000, mime=
     return arr
 
 # z is the resolution level
-def tile(x,y,z):
+def tile_at(x,y,z):
     meta = standardMetadata()
     levels = meta.get('levels', None)
     if not levels:
@@ -63,11 +64,9 @@ def res():
     tileWidth = meta.get('tileWidth', None)
     tileHeight = meta.get('tileHeight', None)
     native_magnification = meta.get('magnification', None)
-    if not nlevels or not sizeX or not sizeY or not tileWidth or not tileHeight or not native_magnification:
-        print('bad thing')
-        return
+    assert nlevels and sizeX and sizeY and tileWidth and tileHeight and native_magnification, "something went wrong with getting resolutions"
 
-    resolutions = dict()
+    resolutions: dict[int, dict[str, int | float]] = dict()
     #for i in range(nlevels):
     #    scale_level = nlevels-i-1
     #    # don't truncate here, magnification needs float
@@ -76,8 +75,12 @@ def res():
     for level in range(nlevels):
         mag = src.getMagnificationForLevel(level)
         magnification = mag['magnification']
+        assert magnification, "No magnification"
         # DO NOT ACCESS tile['tile'] or tile['format'] - would loazy load actual data
         tile = tile_n(magnification=magnification)
+
+        assert tile, "Couldn't get tile"
+        assert mag['scale'] and tile['width'] and tile['height'] and tile['iterator_range'] and tile['iterator_range']['level_x_max'] and tile['iterator_range']['level_y_max'], "Bad mag or tile data"
 
         resolutions[level] = dict(
                 magnification = magnification,
@@ -96,7 +99,13 @@ def res():
 
     return resolutions
 
-def tile_n(nth=0, frame=0, magnification=None, return_iter=False):
+@overload
+def tile_n(nth: int = 0, frame: int = 0, magnification: int | float | None = None, *, return_iter: Literal[False] = False) -> LazyTileDict | None: ...
+
+@overload
+def tile_n(nth: int = 0, frame: int = 0, magnification: int | float | None = None, *, return_iter: Literal[True] ) -> Iterator[LazyTileDict] | None: ...
+
+def tile_n(nth=0, frame=0, magnification=None, *, return_iter=False):
     '''
     warning: data is loaded lazily, when tile['tile'] or tile['format'] is accessed
     '''
@@ -109,7 +118,7 @@ def tile_n(nth=0, frame=0, magnification=None, return_iter=False):
         tile = itr if return_iter else next(itr)
         return tile
     except:
-        print("No tile", "nth", nth, "frame", frame, "mag", magnification, "level", level)
+        print("No tile", "nth", nth, "frame", frame, "mag", magnification)
         return None
 
 ## DISPLAY ##
@@ -138,7 +147,6 @@ def clear_screen():
 def showi():
     itr = src.tileIterator( format=large_image.constants.TILE_FORMAT_NUMPY )
 
-    do_break = False
     for tile in itr:
         clear_screen()
         show(tile['tile'], width=12, height=12)
@@ -172,8 +180,8 @@ def viewer(debug=False):
         return
 
 
-    level_width = lambda lvl: resolutions()[lvl]['width']
-    level_height = lambda lvl: resolutions()[lvl]['height']
+    level_width = lambda lvl: resolutions[lvl]['width']
+    level_height = lambda lvl: resolutions[lvl]['height']
     tile_width = lambda t: t['width']
     tile_height = lambda t: t['height']
     # num tiles in x direction
