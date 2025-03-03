@@ -202,6 +202,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/7c/01/cba5e0436a0d5deee6f97ba9d50ad10988f045f5b20b2e268a4b08482d68/python_bioformats-4.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/5b/e2/3bf9afe20d16ea603c67de9d1af1be2eafeaf15c9c11e65770fd17ccd28e/python_javabridge-4.0.4.tar.gz
       - pypi: https://files.pythonhosted.org/packages/7b/88/f73dae807ec68b228fba72507105e3ba80a561dc0bade0004ce24fd118fc/pyvips-2.2.3.tar.gz
+      - pypi: https://files.pythonhosted.org/packages/33/d1/439e58487cf9eac26378332e25e7d5ade4b800ce1eec7dc2cfc9b0d7ca96/ruff-0.9.9-py3-none-macosx_10_12_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/1b/ac/e7dc469e49048dc57f62e0c555d2ee3117fa30813d2a1a2962cce3a2a82a/s3transfer-0.11.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/44/51/5fd34f96da5ece6a905204dc7ce46c98443e51035eb3565abc012aa0a145/simplejpeg-1.8.1-cp310-cp310-macosx_10_9_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/59/50/7bef6a1259a2c4b81823653a69d2d51074f7b8095db2abae5abee962ab87/tifffile-2025.1.10-py3-none-any.whl
@@ -2469,6 +2470,11 @@ packages:
   - pkg:pypi/rpds-py?source=hash-mapping
   size: 329800
   timestamp: 1733366922693
+- pypi: https://files.pythonhosted.org/packages/33/d1/439e58487cf9eac26378332e25e7d5ade4b800ce1eec7dc2cfc9b0d7ca96/ruff-0.9.9-py3-none-macosx_10_12_x86_64.whl
+  name: ruff
+  version: 0.9.9
+  sha256: b6cd1428e834b35d7493354723543b28cc11dc14d1ce19b685f6e68e07c05ec7
+  requires_python: '>=3.7'
 - pypi: https://files.pythonhosted.org/packages/1b/ac/e7dc469e49048dc57f62e0c555d2ee3117fa30813d2a1a2962cce3a2a82a/s3transfer-0.11.2-py3-none-any.whl
   name: s3transfer
   version: 0.11.2
