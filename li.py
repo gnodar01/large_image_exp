@@ -231,20 +231,29 @@ def viewer(debug=False):
     if tile is None:
         return
 
-    level_width = lambda lvl: resolutions[lvl]["width"]
-    level_height = lambda lvl: resolutions[lvl]["height"]
-    tile_width = lambda t: t["width"]
-    tile_height = lambda t: t["height"]
+    def level_width(lvl):
+        return resolutions[lvl]["width"]
+    def level_height(lvl):
+        return resolutions[lvl]["height"]
+    def tile_width(t):
+        return t["width"]
+    def tile_height(t):
+        return t["height"]
     # num tiles in x direction
-    nx = lambda t: t["iterator_range"]["level_x_max"]
+    def nx(t):
+        return t["iterator_range"]["level_x_max"]
     # idx of tile in x direction
-    ix = lambda t: t["tile_position"]["level_x"]
+    def ix(t):
+        return t["tile_position"]["level_x"]
     # num tiles in y direction
-    ny = lambda t: t["iterator_range"]["level_y_max"]
+    def ny(t):
+        return t["iterator_range"]["level_y_max"]
     # idx of tile in y direction
-    iy = lambda t: t["tile_position"]["level_y"]
+    def iy(t):
+        return t["tile_position"]["level_y"]
     # num of nth values
-    nn = lambda t: nx(t) * ny(t)
+    def nn(t):
+        return nx(t) * ny(t)
 
     while True:
         clear_screen()
