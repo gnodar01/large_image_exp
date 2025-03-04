@@ -1,0 +1,4 @@
+[submodule "large_image"]
+	path = large_image
+	url = git@github.com:gnodar01/large_image.git
+  branch = debulk
