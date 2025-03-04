@@ -29,3 +29,4 @@ large-image = { version = ">=1.31.1, <2", extras = ["bioformats", "ometiff", "pi
 imgcat = ">=0.6.0, <0.7"
 mplterm = { git = "git+https://github.com/anntzer/mplterm" }
 ruff = ">=0.9.9, <0.10"
+

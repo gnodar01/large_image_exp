@@ -1,18 +1,18 @@
 import os
-from pathlib import Path
 import pprint
 import sys
 import termios
 import tty
+from pathlib import Path
 from typing import Iterator, Literal, overload
 
 import large_image
 import large_image.constants
-from large_image.tilesource.tileiterator import LazyTileDict
 import matplotlib.pyplot as plt
+from large_image.tilesource.tileiterator import LazyTileDict
 
 try:
-    if src: # type: ignore
+    if src:  # type: ignore
         print("aready loaded src")
 except NameError:
     print("loading src")
@@ -161,7 +161,7 @@ def tile_n(nth=0, frame=0, magnification=None, *, return_iter=False):
     try:
         tile = itr if return_iter else next(itr)
         return tile
-    except:
+    except Exception:
         print("No tile", "nth", nth, "frame", frame, "mag", magnification)
         return None
 
@@ -171,9 +171,17 @@ def tile_n(nth=0, frame=0, magnification=None, *, return_iter=False):
 
 # width and height in inches
 # default WxH: 6.4, 4.8
-def show(img, width=6, height=6):
+def show(img, width=6, height=6, min_intensity=None, max_intensity=None):
+    # if min_intensity is None:
+    #    min_intensity = img.min()
+    # if max_intensity is None:
+    #    max_intensity = img.max()
+
     figure = plt.figure(figsize=(width, height))
-    ax = plt.imshow(img)
+    print(
+        "local", img.min(), ",", img.max(), "global", min_intensity, ",", max_intensity
+    )
+    ax = plt.imshow(img, vmin=min_intensity, vmax=max_intensity)
     plt.show()
 
 
@@ -231,33 +239,50 @@ def viewer(debug=False):
     if tile is None:
         return
 
+    min_intensity = tile["tile"].min()
+    max_intensity = tile["tile"].max()
+
     def level_width(lvl):
         return resolutions[lvl]["width"]
+
     def level_height(lvl):
         return resolutions[lvl]["height"]
+
     def tile_width(t):
         return t["width"]
+
     def tile_height(t):
         return t["height"]
+
     # num tiles in x direction
     def nx(t):
         return t["iterator_range"]["level_x_max"]
+
     # idx of tile in x direction
     def ix(t):
         return t["tile_position"]["level_x"]
+
     # num tiles in y direction
     def ny(t):
         return t["iterator_range"]["level_y_max"]
+
     # idx of tile in y direction
     def iy(t):
         return t["tile_position"]["level_y"]
+
     # num of nth values
     def nn(t):
         return nx(t) * ny(t)
 
     while True:
         clear_screen()
-        show(tile["tile"], width=12, height=12)
+        show(
+            tile["tile"],
+            width=12,
+            height=12,
+            min_intensity=min_intensity,
+            max_intensity=max_intensity,
+        )
         display_tile = {k: v for k, v in tile.items() if k != "tile"}
         display_tile["frame_no"] = frame
         display_tile["frame_max"] = nframes
