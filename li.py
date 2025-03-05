@@ -16,11 +16,12 @@ try:
         print("aready loaded src")
 except NameError:
     print("loading src")
-    r = Path("/Users/ngogober/Developer/CellProfiler/large_images")
-    fn = (
-        "E02b_Tonsil_Full_P94_A31_C141_LJI_Orion12_ASCM@20230606_220006_885831.ome.tiff"
-    )
-    p = r / fn
+    #r = Path("/Users/ngogober/Developer/CellProfiler/large_images")
+    #fn = (
+    #    "E02b_Tonsil_Full_P94_A31_C141_LJI_Orion12_ASCM@20230606_220006_885831.ome.tiff"
+    #)
+    #p = r / fn
+    p = Path("./big_thing.ome.tiff")
 
     src = large_image.open(p)
 
