@@ -1,0 +1,140 @@
+.g-config-breadcrumb-container
+p.g-large-image-description
+form#g-large-image-form(role="form")
+  .form-group
+    label Automatically use new items as large images
+    p.g-large-image-description
+      | Uploaded and imported items with files that have MIME-types or extensions that are typical of large images will be set as large image items if they can be used without running a conversion job.
+    .g-large-image-auto-set-container
+      label.radio-inline
+        input.g-large-image-auto-set-on(type="radio", name="g-large-image-auto-set", checked=settings['large_image.auto_set'] === true ? 'checked' : undefined)
+        | Automatically use large images
+      label.radio-inline
+        input.g-large-image-auto-set-off(type="radio", name="g-large-image-auto-set", checked=settings['large_image.auto_set'] === false ? 'checked' : undefined)
+        | No automatic use
+      label.radio-inline
+        input.g-large-image-auto-set-all(type="radio", name="g-large-image-auto-set", checked=settings['large_image.auto_set'] === 'all' ? 'checked' : undefined)
+        | Automatically try to use all files as large images
+  .form-group
+    label
+      | Maximum size of regular images to use without conversion
+    p.g-large-image-description
+      | Images in common formats, such as JPEG and PNG can be used as large images without conversion if they are not too large.
+    input.input-sm.form-control.g-large-image-max-small-image-size(
+      type="text", value=settings['large_image.max_small_image_size'], title="The maximum size in pixels.  0 to not use regular images.", placeholder="0 to not use regular images.")
+  .form-group
+    label
+      | Maximum number of thumbnail files to save per item
+    p.g-large-image-description
+      | Caching files speeds up thumbnail retrieval but takes some storage space.  Use 0 to not cache thumbnails as files.
+    input.input-sm.form-control.g-large-image-max-thumbnail-files(
+      type="text", value=settings['large_image.max_thumbnail_files'], placeholder="Use 0 to not cache thumbnails as files.")
+  .form-group
+    label Large images in items
+    p.g-large-image-description
+      | Very large images can be served as tiles, allowing many different
+      | viewers to show them.
+    .g-large-image-viewer-container
+      label.radio-inline
+        input.g-large-image-viewer-show(type="radio", name="g-large-image-viewer", checked=settings['large_image.show_viewer'] !== false ? 'checked': undefined)
+        | Show viewer
+      label.radio-inline
+        input.g-large-image-viewer-hide(type="radio", name="g-large-image-viewer", checked=settings['large_image.show_viewer'] !== false ? undefined : 'checked')
+        | Don't show
+  .form-group
+    label Default large image item viewer
+    p.g-large-image-description
+      | Only the GeoJS viewer supports all features.
+    .g-large-image-default-viewer-container
+      select.form-control.input-sm.g-large-image-default-viewer
+        each viewer in viewers
+          option(value=viewer.name, selected=(settings['large_image.default_viewer'] === viewer.name)) #{viewer.label}
+  .form-group
+    label ICC Profile Color Correction
+    p.g-large-image-description
+      | Some images have ICC Profile information.  If present, this can be used
+      | to adjust to the sRGB color space.  Note: if you change this setting,
+      | you may need to clear your browser cache to see changes.  Some caches
+      | may take an hour or longer to clear on their own.
+    .g-large-image-viewer-container
+      label.radio-inline
+        input.g-large-image-icc-correction(type="radio", name="g-large-image-icc-correction", checked=settings['large_image.icc_correction'] !== false ? 'checked': undefined)
+        | Apply ICC Profile adjustments
+      label.radio-inline
+        input.g-large-image-icc-correction-off(type="radio", name="g-large-image-icc-correction", checked=settings['large_image.icc_correction'] !== false ? undefined : 'checked')
+        | Do not apply ICC Profile adjustments
+  .form-group
+    - var detailplaceholder = 'A JSON object listing extra details to show.  For example: {"metadata": ["tile", "internal"], "images": ["label", "macro", "*"]}'
+    - var detailtitle = 'This can be specified images and metadata as a JSON object such as {"metadata": ["tile", "internal"], "images": ["label", "macro", "*"]}'
+    label
+      | Additional details to show in item pages
+    p.g-large-image-description
+      | Details to show on item pages to anonymous users.
+    input.input-sm.form-control.g-large-image-show-item-extra-public(
+      type="text", value=settings['large_image.show_item_extra_public'], placeholder=detailplaceholder, title=detailtitle)
+    p.g-large-image-description
+      | Details to show on item pages for all logged-in users.
+    input.input-sm.form-control.g-large-image-show-item-extra(
+      type="text", value=settings['large_image.show_item_extra'], placeholder=detailplaceholder, title=detailtitle)
+    p.g-large-image-description
+      | Details to show on item pages for admins and owners of the images.
+    input.input-sm.form-control.g-large-image-show-item-extra-admin(
+      type="text", value=settings['large_image.show_item_extra_admin'], placeholder=detailplaceholder, title=detailtitle)
+  .form-group
+    label Large image thumbnails in item lists
+    p.g-large-image-description
+      | This can be overridden using
+      i  .large_image_config.yaml
+      |  files.
+    .g-large-image-thumbnails-container
+      label.radio-inline
+        input.g-large-image-thumbnails-show(type="radio", name="g-large-image-thumbnails", checked=settings['large_image.show_thumbnails'] !== false ? 'checked': undefined)
+        | Show thumbnails
+      label.radio-inline
+        input.g-large-image-thumbnails-hide(type="radio", name="g-large-image-thumbnails", checked=settings['large_image.show_thumbnails'] !== false ? undefined : 'checked')
+        | Don't show
+  .form-group
+    - var detailplaceholder = 'A JSON object listing extra details to show.  For example: {"images": ["label", "macro"]}'
+    - var detailtitle = 'This can be specified images and metadata as a JSON object such as {"images": ["label", "macro"]}'
+    label
+      | Additional details to show in item lists
+    p.g-large-image-description
+      | Details to show in lists to anonymous users.
+    input.input-sm.form-control.g-large-image-show-extra-public(
+      type="text", value=settings['large_image.show_extra_public'], placeholder=detailplaceholder, title=detailtitle)
+    p.g-large-image-description
+      | Details to show in lists for all logged-in users.
+    input.input-sm.form-control.g-large-image-show-extra(
+      type="text", value=settings['large_image.show_extra'], placeholder=detailplaceholder, title=detailtitle)
+    p.g-large-image-description
+      | Details to show in lists for admins and owners of the images.
+    input.input-sm.form-control.g-large-image-show-extra-admin(
+      type="text", value=settings['large_image.show_extra_admin'], placeholder=detailplaceholder, title=detailtitle)
+  .form-group
+    label(for="g-large-image-config-folder") Configuration Folder
+    p.g-large-image-description
+      | If a configuration folder is specified, configuration files stored there are used for the entire system if they are not overridden by local configuration files.
+    .input-group.input-group-sm
+      input#g-large-image-config-folder.form-control.input-sm(
+          type="text", value=settings['large_image.config_folder'] || '',
+          title="A folder to store configuration files.")
+      .input-group-btn
+        button.g-open-browser.btn.btn-default(type="button")
+          i.icon-folder-open
+  .form-group
+    label Server Notification Stream Fallback
+    p.g-large-image-description
+      | If the Server Notification Stream is turned off, should polling be used
+      | instead?  If neither is used, some web pages will need to be manually
+      | refreshed to see updates.  If this is changed and the notification
+      | streams are off, existing web pages will need to be reloaded once for
+      | the change to take effect.
+    .g-large-image-stream-fallback-container
+      label.radio-inline
+        input.g-large-image-stream-fallback(type="radio", name="g-large-image-stream", checked=settings['large_image.notification_stream_fallback'] !== false ? 'checked': undefined)
+        | Polling fallback
+      label.radio-inline
+        input.g-large-image-stream-no-fallback(type="radio", name="g-large-image-stream", checked=settings['large_image.notification_stream_fallback'] !== false ? undefined : 'checked')
+        | No polling
+  p#g-large-image-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")

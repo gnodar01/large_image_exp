@@ -1,0 +1,61 @@
+---
+access:
+  # Show to user and higher
+  user:
+    # itemList adjustments
+    itemList:
+      layout:
+        # grid or list
+        # mode: grid
+        # for grids, how wide should items be
+        min-width: 200
+      # Show these columns
+      columns:
+        - type: image
+          value: thumbnail
+          title: Thumbnail
+        - type: image
+          value: label
+          title: Label
+        - type: image
+          value: macro
+          title: Macro
+        - type: record
+          value: name
+        - type: metadata
+          value: Stain
+          format: text
+          # Only show this record for entries that match a particular value
+          only:
+            - type: record
+              value: name
+              match: "\\.svs$"
+        - type: metadata
+          value: Classification
+          format: number
+        - type: metadata
+          value: gloms.length
+        - type: record
+          value: size
+        - type: record
+          value: controls
+      defaultSort:
+        - type: metadata
+          value: Classification
+          dir: up
+        - type: record
+          value: name
+          dir: down
+    itemListDialog:
+      # Show these columns
+      columns:
+        - type: image
+          value: thumbnail
+          title: Thumbnail
+        - type: record
+          value: name
+        - type: metadata
+          value: Stain
+          format: text
+        - type: record
+          value: size

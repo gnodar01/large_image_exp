@@ -1,0 +1,17 @@
+---
+version: 2
+updates:
+  # Enable version updates for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  # This checks dockerfiles, not docker-compose files, so doesn't do anything
+  # - package-ecosystem: "docker"
+  #   directory: "/.circleci/dcm4chee/"
+  #   schedule:
+  #     interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

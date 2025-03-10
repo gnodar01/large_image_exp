@@ -1,0 +1,85 @@
+{
+    "name": "@girder/large_image_annotation",
+    "version": "1.0.0",
+    "description": "Support annotations in the large_image plugin.",
+    "homepage": "https://github.com/girder/large_image",
+    "bugs": {
+        "url": "https://github.com/girder/large_image/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/large_image.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*",
+        "@girder/large_image": "*"
+    },
+    "dependencies": {
+        "tinycolor2": "~1.4.1"
+    },
+    "main": "./index.js",
+    "girderPlugin": {
+        "name": "large_image_annotation",
+        "main": "./main.js",
+        "dependencies": [
+            "large_image"
+        ]
+    },
+    "eslintConfig": {
+        "extends": "@girder",
+        "rules": {
+            "for-direction": "error",
+            "getter-return": "error",
+            "multiline-ternary": [
+                "error",
+                "always-multiline"
+            ],
+            "no-alert": "error",
+            "switch-colon-spacing": "error",
+            "object-curly-spacing": [
+                "error",
+                "never"
+            ],
+            "import/exports-last": "error",
+            "promise/no-native": "error",
+            "promise/no-return-in-finally": "error",
+            "promise/no-return-wrap": "error",
+            "no-import-assign": "off"
+        },
+        "root": true
+    },
+    "eslintIgnore": [
+        "**/node_modules/"
+    ],
+    "pugLintConfig": {
+        "extends": "@girder/pug-lint-config",
+        "excludeFiles": [
+            "**/node_modules/"
+        ]
+    },
+    "stylusSupremacy.insertColons": false,
+    "stylusSupremacy.insertSemicolons": false,
+    "stylusSupremacy.insertBraces": false,
+    "stylusSupremacy.tabStopChar": "  ",
+    "stylusSupremacy.quoteChar": "\"",
+    "stylusSupremacy.alwaysUseZeroWithoutUnit": true,
+    "stylusSupremacy.reduceMarginAndPaddingValues": true,
+    "devDependencies": {
+        "@girder/eslint-config": "*",
+        "@girder/pug-lint-config": "*",
+        "eslint": "^8.20.0",
+        "eslint-config-semistandard": "^17.0.0",
+        "eslint-config-standard": "^17.0.0",
+        "eslint-plugin-backbone": "^2.1.1",
+        "eslint-plugin-import": "^2.25.3",
+        "eslint-plugin-n": "^15.2.4",
+        "eslint-plugin-promise": "^6.0.0",
+        "pug-lint": "^2.6.0",
+        "stylus-supremacy": "^2.17.5"
+    },
+    "scripts": {
+        "lint": "eslint --cache . && eslint --no-eslintrc -c ./package.json --cache ../../test_annotation/web_client_specs && pug-lint . && stylus-supremacy format --compare ./**/*.styl --options package.json",
+        "format": "eslint --cache --fix . && eslint --no-eslintrc -c ./package.json --cache --fix ../../test_annotation/web_client_specs && stylus-supremacy format ./**/*.styl --replace --options package.json"
+    }
+}

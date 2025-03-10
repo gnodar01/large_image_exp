@@ -1,0 +1,13 @@
+// TODO: change .g-item-info-header to its own class that extends
+.g-item-info-header
+  i.icon-picture
+  span  Image Viewer
+  select#image-viewer-control.form-control.input-sm.image-viewer-control
+    each viewer in viewers
+      option(value=viewer.name) #{viewer.label}
+.image-controls
+  #vue-container
+.image-viewer-loading.hidden
+  span.icon-spin1.animate-spin(title="Loading image")
+each viewer in viewers
+  .image-viewer.hidden(id=viewer.name)

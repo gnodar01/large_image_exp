@@ -1,0 +1,30 @@
+[project]
+authors = ["Nodar Gogoberidze <gnodar01@gmail.com>"]
+channels = ["conda-forge"]
+description = "Add a short description here"
+name = "large_image2"
+platforms = ["osx-64"]
+version = "0.1.0"
+
+[tasks]
+ip = { cmd = "ipython", env = { MPLBACKEND = "module://imgcat" } }
+ips = { cmd = "ipython", env = { MPLBACKEND = "module://imgcat" , MPLTERM = "proto=sixel" } }
+
+[activation]
+env = { JAVA_OPTS = "-Djna.library.path=$PIXI_PROJECT_ROOT/.pixi/envs/default/lib/", JAVA_HOME = "$PIXI_PROJECT_ROOT/.pixi/envs/dev/lib/jvm", JDK_HOME = "$PIXI_PROJECT_ROOT/.pixi/envs/dev/lib/jvm" }
+
+[dependencies]
+python = ">=3.9,<3.11"
+ipykernel = ">=6.29.5,<7"
+jupyter = ">=1.1.1,<2"
+ipython = ">=8.32.0,<9"
+zarr = ">=2.18.3,<3"
+dask = ">=2025.2.0,<2026"
+tifffile = ">=2025.2.18,<2026"
+#openjdk = ">=23.0.1,<24"
+
+[pypi-dependencies]
+imgcat = ">=0.6.0, <0.7"
+mplterm = { git = "git+https://github.com/anntzer/mplterm" }
+ruff = ">=0.9.9, <0.10"
+

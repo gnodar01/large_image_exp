@@ -1,0 +1,10 @@
+exclude *
+prune *
+include LICENSE
+include README.rst
+include setup.py
+
+graft docs
+graft large_image
+graft large_image.egg-info
+global-exclude *.py[co] __pycache__ node_modules
