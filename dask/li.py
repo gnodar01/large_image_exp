@@ -19,20 +19,18 @@ except NameError:
     data = [dask.array.from_zarr(z) for z in _zarr_data]  # type: ignore
 
 
-def metadata():
-    def sp(val): return f"{val:_}" if type(val) == type(
-        1) or type(val) == type(1.1) else val
+def metadata(max_pages=0, include_tags=False):
+    def sp(val): return f"{val:_}" if type(val) is type(
+        1) or type(val) is type(1.1) else val
 
     def spmap(val): return tuple(
-        map(
-            lambda x: sp(x), val)
+        map(lambda x: sp(x), val)
     )\
-        if type(val) == type((1, 1))\
+        if type(val) is type((1, 1))\
         else list(
-        map(
-            lambda x: sp(x), val)
+        map(lambda x: sp(x), val)
     )\
-        if type(val) == type([1, 1])\
+        if type(val) is type([1, 1])\
         else val
 
     metadata = dict()
@@ -75,10 +73,9 @@ def metadata():
                         tif.series[i]._shape_expanded)  # type: ignore
                 metadata['series'][i]['size'] = sp(tif.series[i].size)
 
-        MAX_PAGES = 10
         metadata['pages'] = list()
         for i, _ in enumerate(tif.pages):
-            if i > MAX_PAGES:
+            if i >= max_pages:
                 break
             metadata['pages'].append(dict())
             metadata['pages'][i]['axes'] = hasattr(
@@ -117,28 +114,29 @@ def metadata():
             metadata['pages'][i]['shape'] = hasattr(
                 tif.pages[i], 'shape') and spmap(tif.pages[i].shape) or 'undefined'
 
-            tag_keys = hasattr(
-                tif.pages[i], 'tags') and tif.pages[i].tags.keys() or []  # type: ignore
-            metadata['pages'][i]['tags'] = dict()
-            for key in tag_keys:
-                metadata['pages'][i]['tags'][key] = dict()  # type: ignore
-                metadata['pages'][i]['tags'][key]['code'] = tif.pages[i].tags[key].code  # type: ignore
-                # type: ignore
-                metadata['pages'][i]['tags'][key]['count'] = tif.pages[i].tags[key].count  # type: ignore
-                metadata['pages'][i]['tags'][key]['dtype_name'] = tif.pages[i].tags[key].dtype_name  # type: ignore
-                metadata['pages'][i]['tags'][key]['name'] = tif.pages[i].tags[key].name  # type: ignore
-                metadata['pages'][i]['tags'][key]['dataformat'] = tif.pages[i].tags[key].dataformat  # type: ignore
-                metadata['pages'][i]['tags'][key]['valuebytecount'] = tif.pages[i].tags[key].valuebytecount  # type: ignore
-                val = tif.pages[i].tags[key].value  # type: ignore
-                if tif.pages[i].tags[key].valuebytecount < 100:  # type: ignore
-                    if type(val) == type(1):
-                        metadata['pages'][i]['tags'][key]['value'] = val
-                    elif type(val) == type(1.0):
-                        metadata['pages'][i]['tags'][key]['value'] = val
+            if include_tags:
+                tag_keys = hasattr(
+                    tif.pages[i], 'tags') and tif.pages[i].tags.keys() or []  # type: ignore
+                metadata['pages'][i]['tags'] = dict()
+                for key in tag_keys:
+                    metadata['pages'][i]['tags'][key] = dict()  # type: ignore
+                    metadata['pages'][i]['tags'][key]['code'] = tif.pages[i].tags[key].code  # type: ignore
+                    # type: ignore
+                    metadata['pages'][i]['tags'][key]['count'] = tif.pages[i].tags[key].count  # type: ignore
+                    metadata['pages'][i]['tags'][key]['dtype_name'] = tif.pages[i].tags[key].dtype_name  # type: ignore
+                    metadata['pages'][i]['tags'][key]['name'] = tif.pages[i].tags[key].name  # type: ignore
+                    metadata['pages'][i]['tags'][key]['dataformat'] = tif.pages[i].tags[key].dataformat  # type: ignore
+                    metadata['pages'][i]['tags'][key]['valuebytecount'] = tif.pages[i].tags[key].valuebytecount  # type: ignore
+                    val = tif.pages[i].tags[key].value  # type: ignore
+                    if tif.pages[i].tags[key].valuebytecount < 100:  # type: ignore
+                        if type(val) is type(1):
+                            metadata['pages'][i]['tags'][key]['value'] = val
+                        elif type(val) is type(1.0):
+                            metadata['pages'][i]['tags'][key]['value'] = val
+                        else:
+                            metadata['pages'][i]['tags'][key]['value'] = str(val)
                     else:
-                        metadata['pages'][i]['tags'][key]['value'] = str(val)
-                else:
-                    metadata['pages'][i]['tags'][key]['value'] = "LOTS OF STUFF"
+                        metadata['pages'][i]['tags'][key]['value'] = "LOTS OF STUFF"
     del tif
 
     return metadata
