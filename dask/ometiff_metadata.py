@@ -1,9 +1,49 @@
 import xmltodict
 import tifffile
 from math import ceil
+from typing import TypedDict, Literal
 
 
-def extract_metadata(FNAME, max_pages: int | None = 0, include_tags=False):
+class Resolution(TypedDict):
+    shape: tuple[int, ...]
+    dims: tuple[str, ...]
+    height: int
+    width: int
+    channels: int
+    max_tile_height: int
+    max_tile_width: int
+    n_tiles_x: int
+    n_tiles_y: int
+
+
+class StandardMetadata(TypedDict):
+    endiness: Literal["<", ">"]
+    dim_order: str
+    x_idx: int
+    y_idx: int
+    c_idx: int
+    z_idx: int
+    t_idx: int
+    x_size: int
+    y_size: int
+    z_size: int
+    c_size: int
+    t_size: int
+    x_mag: float
+    x_mag_unit: str
+    y_mag: float
+    y_mag_unit: str
+    z_mag: float
+    z_mag_unit: str
+    shape: tuple[int, ...]
+    dtype: str
+    channel_names: tuple[str, ...]
+    tile_height: int
+    tile_width: int
+    resolutions: dict[int, Resolution]
+
+
+def extract_metadata(FNAME: str, max_pages: int | None = 0, include_tags=False):
     def sp(val): return f"{val:_}" if type(val) is type(
         1) or type(val) is type(1.1) else val
 
@@ -156,45 +196,50 @@ def extract_metadata(FNAME, max_pages: int | None = 0, include_tags=False):
     return metadata
 
 
-def extract_standard_metadata(FNAME):
+def extract_standard_metadata(FNAME: str) -> StandardMetadata:
     full_meta = extract_metadata(FNAME, max_pages=None, include_tags=False)
     pixels_meta = full_meta["metadatas"]["ome"]["OME"]["Image"]["Pixels"]
 
     endiness = "<" if pixels_meta["@BigEndian"] == "false" else ">"
-    dim_order = pixels_meta["@DimensionOrder"]
+    dim_order = str(pixels_meta["@DimensionOrder"])
 
-    print(dim_order)
-    x_idx = dim_order.index("Y")
-    y_idx = dim_order.index("X")
+    x_idx = dim_order.index("X")
+    y_idx = dim_order.index("Y")
     c_idx = dim_order.index("C")
     z_idx = dim_order.index("Z")
+    t_idx = dim_order.index("T")
 
     x_size = int(pixels_meta["@SizeX"])
     y_size = int(pixels_meta["@SizeY"])
     z_size = int(pixels_meta["@SizeZ"])
     c_size = int(pixels_meta["@SizeC"])
+    t_size = int(pixels_meta["@SizeT"])
 
     x_mag = float(pixels_meta["@PhysicalSizeX"])
-    x_mag_unit = pixels_meta["@PhysicalSizeXUnit"]
+    x_mag_unit = str(pixels_meta["@PhysicalSizeXUnit"])
     y_mag = float(pixels_meta["@PhysicalSizeY"])
-    y_mag_unit = pixels_meta["@PhysicalSizeYUnit"]
+    y_mag_unit = str(pixels_meta["@PhysicalSizeYUnit"])
     z_mag = float(pixels_meta["@PhysicalSizeZ"])
-    z_mag_unit = pixels_meta["@PhysicalSizeZUnit"]
+    z_mag_unit = str(pixels_meta["@PhysicalSizeZUnit"])
 
-    shape = [1] * 4
+    shape = [1] * 5
     shape[x_idx] = x_size
     shape[y_idx] = y_size
     shape[c_idx] = c_size
     shape[z_idx] = z_size
+    shape[t_idx] = t_size
     shape = tuple(shape)
 
-    dtype = pixels_meta["@Type"]
+    dtype = str(pixels_meta["@Type"])
 
-    channel_names = tuple(map(lambda channel_info: channel_info["@Name"], pixels_meta["Channel"]))
+    channel_names = tuple(map(lambda channel_info: str(channel_info["@Name"]), pixels_meta["Channel"]))
 
-    resolutions = dict()
+    tile_height = int(full_meta["pages"][0]["tilelength"])
+    tile_width = int(full_meta["pages"][0]["tilewidth"])
 
-    levels_dim_order = full_meta["series"][0]["dims"]
+    resolutions: dict[int, Resolution] = dict()
+
+    levels_dim_order = tuple(map(lambda d: str(d), full_meta["series"][0]["dims"]))
     levels_height_idx = levels_dim_order.index("height")
     levels_width_idx = levels_dim_order.index("width")
     levels_seq_idx = levels_dim_order.index("sequence")
@@ -203,55 +248,50 @@ def extract_standard_metadata(FNAME):
     for i, level in enumerate(levels):
         level_shape = tuple(map(lambda v: int(v), level["shape"]))
 
-        tile_height = int(full_meta["pages"][0]["tilelength"])
-        tile_width = int(full_meta["pages"][0]["tilewidth"])
+        level_dims = levels_dim_order
+        level_height = level_shape[levels_height_idx]
+        level_width = level_shape[levels_width_idx]
+        level_channels = level_shape[levels_seq_idx]
+        level_max_tile_height = min(tile_height, level_height)
+        level_max_tile_width = min(tile_width, level_width)
+        level_n_tiles_x = ceil(level_width / level_max_tile_width)
+        level_n_tiles_y = ceil(level_height / level_max_tile_height)
 
-        shape = level_shape
-        dims = levels_dim_order
-        height = level_shape[levels_height_idx]
-        width = level_shape[levels_width_idx]
-        channels = level_shape[levels_seq_idx]
-        max_tile_height = max(tile_height, height)
-        max_tile_width = max(tile_width, width)
-        n_tiles_x = ceil(width / max_tile_width)
-        n_tiles_y = ceil(height / max_tile_height)
+        resolutions[i] = {
+            "shape": level_shape,
+            "dims": level_dims,
+            "height": level_height,
+            "width": level_width,
+            "channels": level_channels,
+            "max_tile_height": level_max_tile_height,
+            "max_tile_width": level_max_tile_width,
+            "n_tiles_x": level_n_tiles_x,
+            "n_tiles_y": level_n_tiles_y
+        }
 
-        resolutions[i] = dict(
-            shape=shape,
-            dims=dims,
-            height=height,
-            width=width,
-            channels=channels,
-            max_tile_height=max_tile_height,
-            max_tile_width=max_tile_width,
-            n_tiles_x=n_tiles_x,
-            n_tiles_y=n_tiles_y
-        )
-
-    return dict(
-        endiness=endiness,
-        dim_order=dim_order,
-        x_idx=x_idx,
-        y_idx=y_idx,
-        c_idx=c_idx,
-        z_idx=z_idx,
-        x_size=x_size,
-        y_size=y_size,
-        z_size=z_size,
-        c_size=c_size,
-        x_mag=x_mag,
-        x_mag_unit=x_mag_unit,
-        y_mag=y_mag,
-        y_mag_unit=y_mag_unit,
-        z_mag=z_mag,
-        z_mag_unit=z_mag_unit,
-        shape=shape,
-        dtype=dtype,
-        channel_names=channel_names,
-        resolutions=resolutions,
-    )
-
-
-def extract_resolutions(FNAME):
-    standard_metadata = extract_standard_metadata(FNAME)
-    return standard_metadata["resolutions"]
+    return {
+        "endiness": endiness,
+        "dim_order": dim_order,
+        "x_idx": x_idx,
+        "y_idx": y_idx,
+        "c_idx": c_idx,
+        "z_idx": z_idx,
+        "t_idx": t_idx,
+        "x_size": x_size,
+        "y_size": y_size,
+        "z_size": z_size,
+        "c_size": c_size,
+        "t_size": t_size,
+        "x_mag": x_mag,
+        "x_mag_unit": x_mag_unit,
+        "y_mag": y_mag,
+        "y_mag_unit": y_mag_unit,
+        "z_mag": z_mag,
+        "z_mag_unit": z_mag_unit,
+        "shape": shape,
+        "dtype": dtype,
+        "channel_names": channel_names,
+        "tile_height": tile_height,
+        "tile_width": tile_width,
+        "resolutions": resolutions,
+    }
