@@ -96,16 +96,18 @@ def tile_n(nth: int, frame: int = 0, level: int = 0) -> zarr.Array:
 # width and height in inches
 # default WxH: 6.4, 4.8
 def show(img, width=6, height=6, min_intensity=None, max_intensity=None):
+    _img = img.compute()
+
     # if min_intensity is None:
-    #    min_intensity = img.min()
+    #    min_intensity = _img.min()
     # if max_intensity is None:
-    #    max_intensity = img.max()
+    #    max_intensity = _img.max()
 
     _ = plt.figure(figsize=(width, height))  # figure
     print(
-        "local", img.min(), ",", img.max(), "global", min_intensity, ",", max_intensity
+        "local", _img.min(), ",", _img.max(), "global", min_intensity, ",", max_intensity
     )
-    _ = plt.imshow(img, vmin=min_intensity, vmax=max_intensity)  # ax
+    _ = plt.imshow(_img, vmin=min_intensity, vmax=max_intensity)  # ax
     plt.show()
 
 
@@ -143,8 +145,8 @@ def viewer(debug=False):
     if tile is None:
         return
 
-    min_intensity: int = tile.min()  # type: ignore
-    max_intensity: int = tile.max()  # type: ignore
+    min_intensity: int = tile.min().compute()  # type: ignore
+    max_intensity: int = tile.max().compute()  # type: ignore
 
     # def level_width(lvl):
     #    return resolutions[lvl]["width"]
