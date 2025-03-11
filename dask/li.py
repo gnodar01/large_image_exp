@@ -134,8 +134,8 @@ def viewer(debug=False):
     _res = _meta["resolutions"]
     nframes = _meta["c_size"]
 
-    # level = nlevels - 1
-    level = 0
+    level = len(_res) - 1
+    # level = 0
     frame = 0
     nth = 0
 
@@ -202,24 +202,15 @@ def viewer(debug=False):
         display_tile["frame_max"] = nframes
         display_tile["level"] = level
         display_tile["frame"] = frame
-        display_tile["n"] = nth
+        display_tile["nth"] = nth
+        display_tile["nlevels"] = len(_res)
+        display_tile["nframes"] = nframes
+        display_tile["tile_width"] = tile_width(level)
+        display_tile["tile_height"] = tile_height(level)
+        display_tile["n_tiles_total"] = nn(level)
 
         if debug:
             pprint.pp(display_tile)
-            pprint.pp(
-                dict(
-                    nlevels=len(_res),
-                    nframes=nframes,
-                    level=level,
-                    frame=frame,
-                    nth=nth,
-                    tile_width=tile_width(level),
-                    tile_height=tile_height(level),
-                    nx=nx(level),
-                    ny=ny(level),
-                    nn=nn(level),
-                )
-            )
 
         key = get_single_key()
         key_ord = ord(key)
@@ -267,22 +258,22 @@ def viewer(debug=False):
 
         #  up pyramid (downscale)
         elif key == "u" or key == "K":
-            if level > 0:
-                level = max(0, level - 1)
+            if level < (len(_res) - 1):
+                level += 1
 
-                new_ix = ix(level, nth) // 2
-                new_iy = iy(level, nth) // 2
+                new_ix = ix(level, nth) * 2
+                new_iy = iy(level, nth) * 2
                 new_nx = _res[level]["n_tiles_x"]
 
                 nth = new_iy * new_nx + new_ix
 
         # down pyramid (upscale)
         elif key == "d" or key == "J":
-            if level < (len(_res) - 1):
-                level += 1
+            if level > 0:
+                level = max(0, level - 1)
 
-                new_ix = ix(level, nth) * 2
-                new_iy = iy(level, nth) * 2
+                new_ix = ix(level, nth) // 2
+                new_iy = iy(level, nth) // 2
                 new_nx = _res[level]["n_tiles_x"]
 
                 nth = new_iy * new_nx + new_ix
