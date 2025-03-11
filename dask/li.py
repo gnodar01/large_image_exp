@@ -155,10 +155,10 @@ def viewer(debug=False):
     #    return resolutions[lvl]["height"]
 
     def tile_width(lvl: int):
-        return _res[lvl]["width"]
+        return _res[lvl]["max_tile_width"]
 
     def tile_height(lvl: int):
-        return _res[lvl]["height"]
+        return _res[lvl]["max_tile_height"]
 
     # num tiles in x direction
     def nx(lvl: int):
@@ -167,7 +167,7 @@ def viewer(debug=False):
     # idx of tile in x direction
     def ix(lvl: int, n: int):
         _tile_width = tile_width(lvl)
-        _img_width = _meta["x_size"]
+        _img_width = _res[lvl]["width"]
 
         n_tile_cols = ceil(_img_width/_tile_width)
 
@@ -180,7 +180,7 @@ def viewer(debug=False):
     # idx of tile in y direction
     def iy(lvl: int, n: int):
         _tile_height = tile_height(lvl)
-        _img_height = _meta["y_size"]
+        _img_height = _res[lvl]["height"]
 
         n_tile_rows = ceil(_img_height/_tile_height)
 
@@ -199,19 +199,19 @@ def viewer(debug=False):
             min_intensity=min_intensity,
             max_intensity=max_intensity,
         )
-        display_tile = dict(_res[level])
-        display_tile["frame_no"] = frame
-        display_tile["frame_max"] = nframes
-        display_tile["level"] = level
-        display_tile["frame"] = frame
-        display_tile["nth"] = nth
-        display_tile["nlevels"] = len(_res)
-        display_tile["nframes"] = nframes
-        display_tile["tile_width"] = tile_width(level)
-        display_tile["tile_height"] = tile_height(level)
-        display_tile["n_tiles_total"] = nn(level)
 
         if debug:
+            display_tile = dict(_res[level])
+            display_tile["frame_no"] = frame
+            display_tile["frame_max"] = nframes
+            display_tile["level"] = level
+            display_tile["frame"] = frame
+            display_tile["nth"] = nth
+            display_tile["nlevels"] = len(_res)
+            display_tile["nframes"] = nframes
+            display_tile["tile_width"] = tile_width(level)
+            display_tile["tile_height"] = tile_height(level)
+            display_tile["n_tiles_total"] = nn(level)
             pprint.pp(display_tile)
 
         key = get_single_key()
@@ -263,8 +263,8 @@ def viewer(debug=False):
             if level < (len(_res) - 1):
                 level += 1
 
-                new_ix = ix(level, nth) * 2
-                new_iy = iy(level, nth) * 2
+                new_ix = ix(level, nth)
+                new_iy = iy(level, nth)
                 new_nx = _res[level]["n_tiles_x"]
 
                 nth = new_iy * new_nx + new_ix
@@ -274,8 +274,8 @@ def viewer(debug=False):
             if level > 0:
                 level = max(0, level - 1)
 
-                new_ix = ix(level, nth) // 2
-                new_iy = iy(level, nth) // 2
+                new_ix = ix(level, nth)
+                new_iy = iy(level, nth)
                 new_nx = _res[level]["n_tiles_x"]
 
                 nth = new_iy * new_nx + new_ix
