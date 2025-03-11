@@ -51,7 +51,7 @@ def res():
 
 
 # 0-indexed, assumes row major
-def n_slices(n, level=0) -> tuple[slice[int, int, int], slice[int, int, int]]:
+def n_slices(n, level=0) -> tuple[slice, slice]:
     _res = res()
     n_tiles_x = _res[level]["n_tiles_x"]
     tile_row = int(n // n_tiles_x)
@@ -83,7 +83,7 @@ def tile_n(nth: int, frame: int = 0, level: int = 0) -> zarr.Array:
     assert col_idx in standard_idxs
     assert frame_idx in standard_idxs
 
-    idxs: dict[int, int | slice[int, int, int]] = dict()
+    idxs: dict[int, int | slice] = dict()
     idxs[row_idx] = row_slice
     idxs[col_idx] = col_slice
     idxs[frame_idx] = frame
@@ -191,7 +191,7 @@ def viewer(debug=False):
     while True:
         clear_screen()
         show(
-            tile["tile"],
+            tile,
             width=12,
             height=12,
             min_intensity=min_intensity,
