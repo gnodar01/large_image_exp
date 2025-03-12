@@ -7,8 +7,10 @@ import pprint
 import tifffile
 import zarr
 import dask.array
+from dask.array.core import Array as daskArray
 from importlib import reload
 import matplotlib.pyplot as plt
+from numpy.typing import NDArray
 import ometiff_metadata
 
 
@@ -23,11 +25,11 @@ except NameError:
     _store = tifffile.imread(FNAME, aszarr=True)
     _cache = zarr.LRUStoreCache(_store, max_size=2**29)
     _zobj = zarr.open(_cache, mode="r")
-    _zarr_data = [
+    _zarr_data: list[zarr.Array] = [ # type: ignore
         _zobj[int(dataset["path"])]
         for dataset in _zobj.attrs["multiscales"][0]["datasets"]
     ]
-    data = [dask.array.from_zarr(z) for z in _zarr_data]  # type: ignore
+    data: list[daskArray] = [dask.array.from_zarr(z) for z in _zarr_data] # type: ignore
 
 
 def full_meta(**kwargs):
@@ -120,7 +122,37 @@ def n_slices(n, level=0) -> tuple[slice, slice]:
     return (slice(col_start, col_end, 1), slice(row_start, row_end, 1))
 
 
-def tile_n(nth: int, frame: int = 0, level: int = 0) -> zarr.Array:
+def set_frame(start: int, stop: int | None = None, step: int | None = None, level: int | None = None) -> slice:
+    if level:
+        max_frame = res()[level]["channels"] - 1
+    else:
+        max_frame = meta()["c_size"] - 1
+
+    # start can't surpass max_frame, can't go below 0
+    start = max(0, min(start, max_frame))
+
+    if stop is None:
+        stop = start + 1
+    else:
+        # end must be at least one greater than start
+        stop = max(start + 1, stop)
+
+    if step is None:
+        step = 1
+    # step is allowed to exceed max_frame, as long as stop is set properly
+
+    return slice(start, stop, step)
+
+
+def increment_frame(curr_frame: slice, level: int | None) -> slice:
+    return set_frame(start = curr_frame.start + 1, stop = curr_frame.stop + 1, step = curr_frame.step, level = level)
+
+
+def decrement_frame(curr_frame: slice, level: int | None) -> slice:
+    return set_frame(start = curr_frame.start - 1, stop = curr_frame.stop - 1, step = curr_frame.step, level = level)
+
+
+def tile_n(nth: int, frame: slice = slice(0,1,1), level: int = 0) -> daskArray:
     assert len(data) > level
     assert level >= 0
     _res = res()
@@ -137,12 +169,12 @@ def tile_n(nth: int, frame: int = 0, level: int = 0) -> zarr.Array:
     assert col_idx in standard_idxs
     assert frame_idx in standard_idxs
 
-    idxs: dict[int, int | slice] = dict()
+    idxs: dict[int, slice] = dict()
     idxs[row_idx] = row_slice
     idxs[col_idx] = col_slice
     idxs[frame_idx] = frame
 
-    tile = data[level][idxs[0], idxs[1], idxs[2]]
+    tile = data[level][idxs[0], idxs[1], idxs[2]].transpose(row_idx, col_idx, frame_idx)
 
     assert 0 not in tile.shape, f"invalid shape {tile.shape}, from idxs {idxs}"
 
@@ -151,23 +183,25 @@ def tile_n(nth: int, frame: int = 0, level: int = 0) -> zarr.Array:
 ## DISPLAY ##
 
 
-def show(img, width=6, height=6, min_intensity=None, max_intensity=None):
+def show(img: daskArray, width=6, height=6, min_intensities: NDArray | None=None, max_intensities: NDArray | None=None):
     '''
     width and height in inches
     default WxH: 6.4, 4.8
     '''
-    _img = img.compute()
 
-    # if min_intensity is None:
-    #    min_intensity = _img.min()
-    # if max_intensity is None:
-    #    max_intensity = _img.max()
+    if min_intensities is None:
+        _min_intensities: NDArray = img.min(axis=(0,1), keepdims=True).compute()
+    else:
+        _min_intensities: NDArray = min_intensities
+    if max_intensities is None:
+        _max_intensities: NDArray = img.max(axis=(0,1), keepdims=True).compute()
+    else:
+        _max_intensities: NDArray = max_intensities
+
+    _img = ((img - _min_intensities) / (_max_intensities - _min_intensities)).compute()
 
     _ = plt.figure(figsize=(width, height))  # figure
-    print(
-        "local", _img.min(), ",", _img.max(), "global", min_intensity, ",", max_intensity
-    )
-    _ = plt.imshow(_img, vmin=min_intensity, vmax=max_intensity)  # ax
+    _ = plt.imshow(_img, vmin=0, vmax=1)  # ax
     plt.show()
 
 
@@ -194,42 +228,46 @@ def viewer(debug=False):
     # max_tile_height = _meta["tile_height"]
 
     _res = _meta["resolutions"]
-    nframes = _meta["c_size"]
 
     level = len(_res) - 1
     # level = 0
-    frame = 0
+    frame = set_frame(start=0, level=level)
     nth = 0
 
     tile = tile_n(nth=nth, frame=frame, level=level)
     if tile is None:
         return
 
-    min_intensity: int = tile.min().compute()  # type: ignore
-    max_intensity: int = tile.max().compute()  # type: ignore
+    min_intensities: NDArray = tile.min(axis=(0,1), keepdims=True).compute()
+    max_intensities: NDArray = tile.max(axis=(0,1), keepdims=True).compute()
 
     while True:
+        reset_intensities = False
+
         clear_screen()
         show(
             tile,
             width=12,
             height=12,
-            min_intensity=min_intensity,
-            max_intensity=max_intensity,
+            min_intensities=min_intensities,
+            max_intensities=max_intensities,
         )
 
         if debug:
             display_tile = dict(_res[level])
-            display_tile["frame_no"] = frame
-            display_tile["frame_max"] = nframes
             display_tile["level"] = level
             display_tile["frame"] = frame
             display_tile["nth"] = nth
             display_tile["nlevels"] = len(_res)
-            display_tile["nframes"] = nframes
+            display_tile["nframes"] = _res[level]["channels"]
             display_tile["tile_width"] = tile_width(level)
             display_tile["tile_height"] = tile_height(level)
             display_tile["n_tiles_total"] = nn(level)
+            display_tile["global_min"] = min_intensities.flatten()
+            display_tile["global_max"] = max_intensities.flatten()
+            display_tile["tile_min"] = tile.min(axis=(0,1), keepdims=True).flatten().compute()
+            display_tile["tile_max"] = tile.max(axis=(0,1), keepdims=True).flatten().compute()
+            display_tile["tile_shape"] = tile.shape
             pprint.pp(display_tile)
 
         key = get_single_key()
@@ -242,11 +280,13 @@ def viewer(debug=False):
 
         # next frame
         elif key == "n" or key == "L":
-            frame = min(nframes - 1, frame + 1)
+            frame = increment_frame(curr_frame=frame, level=level)
+            reset_intensities = True
 
         # previous frame
         elif key == "p" or key == "H":
-            frame = max(0, frame - 1)
+            frame = decrement_frame(curr_frame=frame, level=level)
+            reset_intensities = True
 
         # next tile (no bounds check) - cr or nl or sp
         elif key_ord == 13 or key_ord == 10 or key_ord == 32:
@@ -300,6 +340,16 @@ def viewer(debug=False):
 
                 nth = new_iy * new_nx + new_ix
 
+        # composite of first 3 channels
+        elif key == "c":
+            frame = set_frame(start=0, stop=3, step=1, level=level)
+            reset_intensities = True
+
+        # reset back to single frame on 0
+        elif key == "C":
+            frame = set_frame(start=0, stop=1, step=1, level=level)
+            reset_intensities = True
+
         # ? - quit
         else:
             clear_screen()
@@ -312,3 +362,7 @@ def viewer(debug=False):
         tile = tile_n(nth=nth, frame=frame, level=level)
 
         assert tile is not None
+
+        if reset_intensities:
+            min_intensities: NDArray = tile.min(axis=(0,1), keepdims=True).compute()
+            max_intensities: NDArray = tile.max(axis=(0,1), keepdims=True).compute()
