@@ -1,18 +1,19 @@
 import os
-import sys
-from math import ceil
-import tty
-import termios
 import pprint
+import sys
+import termios
+import tty
+from importlib import reload
+from math import ceil
+
+import matplotlib.pyplot as plt
+import ometiff_metadata
 import tifffile
 import zarr
+from numpy.typing import NDArray
+
 import dask.array
 from dask.array.core import Array as daskArray
-from importlib import reload
-import matplotlib.pyplot as plt
-from numpy.typing import NDArray
-import ometiff_metadata
-
 
 FNAME = "big_thing.ome.tiff"
 __cached_meta = None
