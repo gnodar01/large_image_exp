@@ -184,7 +184,7 @@ def tile_n(nth: int, frame: slice = slice(0,1,1), level: int = 0) -> daskArray:
 ## DISPLAY ##
 
 
-def show(img: daskArray, width=6, height=6, min_intensities: NDArray | None=None, max_intensities: NDArray | None=None):
+def show(img: daskArray, fig_scale=1, min_intensities: NDArray | None=None, max_intensities: NDArray | None=None):
     '''
     width and height in inches
     default WxH: 6.4, 4.8
@@ -201,7 +201,13 @@ def show(img: daskArray, width=6, height=6, min_intensities: NDArray | None=None
 
     _img = ((img - _min_intensities) / (_max_intensities - _min_intensities)).compute()
 
-    _ = plt.figure(figsize=(width, height))  # figure
+    DPI = 331
+    fig_width = _img.shape[1] * fig_scale / DPI
+    fig_height = _img.shape[0] * fig_scale / DPI
+
+    _ = plt.figure(figsize=(fig_width, fig_height), dpi=DPI, frameon=False)  # figure
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    plt.axis("off")
     _ = plt.imshow(_img, vmin=0, vmax=1)  # ax
     plt.show()
 
@@ -248,8 +254,7 @@ def viewer(debug=False):
         clear_screen()
         show(
             tile,
-            width=12,
-            height=12,
+            fig_scale=0.5,
             min_intensities=min_intensities,
             max_intensities=max_intensities,
         )
