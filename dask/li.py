@@ -49,19 +49,73 @@ def res():
         _meta = __cached_meta
     return _meta["resolutions"]
 
+# def level_width(lvl: int):
+#    return res()[lvl]["width"]
 
-# 0-indexed, assumes row major
+# def level_height(lvl: int):
+#    return res()[lvl]["height"]
+
+
+def tile_width(lvl: int):
+    return res()[lvl]["max_tile_width"]
+
+
+def tile_height(lvl: int):
+    return res()[lvl]["max_tile_height"]
+
+
+def nx(lvl: int):
+    '''num tiles in x direction'''
+    return res()[lvl]["n_tiles_x"]
+
+
+def ix(lvl: int, n: int):
+    '''idx of tile in x direction'''
+    _tile_width = tile_width(lvl)
+    _img_width = res()[lvl]["width"]
+
+    n_tile_cols = ceil(_img_width/_tile_width)
+
+    return n % n_tile_cols
+
+
+def ny(lvl: int):
+    '''num tiles in y direction'''
+    return res()[lvl]["n_tiles_y"]
+
+
+def iy(lvl: int, n: int):
+    '''idx of tile in y direction'''
+    _tile_width = tile_width(lvl)
+    _img_width = res()[lvl]["width"]
+
+    n_tile_cols = ceil(_img_width/_tile_width)
+
+    return n // n_tile_cols
+
+
+def nn(lvl: int):
+    '''num of nth values'''
+    return nx(lvl) * ny(lvl)
+
+
 def n_slices(n, level=0) -> tuple[slice, slice]:
+    '''0-indexed, assumes row major'''
     _res = res()
     n_tiles_x = _res[level]["n_tiles_x"]
     tile_row = int(n // n_tiles_x)
     tile_col = int(n % n_tiles_x)
+
+    assert n_tiles_x > 0
 
     col_start = int(tile_col * _res[level]["max_tile_width"])
     col_end = int(col_start + _res[level]["max_tile_width"])
 
     row_start = int(tile_row * _res[level]["max_tile_height"])
     row_end = int(row_start + _res[level]["max_tile_height"])
+
+    assert col_end > col_start
+    assert row_end > row_start
 
     return (slice(col_start, col_end, 1), slice(row_start, row_end, 1))
 
@@ -88,14 +142,20 @@ def tile_n(nth: int, frame: int = 0, level: int = 0) -> zarr.Array:
     idxs[col_idx] = col_slice
     idxs[frame_idx] = frame
 
-    return data[level][idxs[0], idxs[1], idxs[2]]
+    tile = data[level][idxs[0], idxs[1], idxs[2]]
+
+    assert 0 not in tile.shape, f"invalid shape {tile.shape}, from idxs {idxs}, level {level}, nth {nth}, nn {nn(level)}"
+
+    return tile
 
 ## DISPLAY ##
 
 
-# width and height in inches
-# default WxH: 6.4, 4.8
 def show(img, width=6, height=6, min_intensity=None, max_intensity=None):
+    '''
+    width and height in inches
+    default WxH: 6.4, 4.8
+    '''
     _img = img.compute()
 
     # if min_intensity is None:
@@ -147,48 +207,6 @@ def viewer(debug=False):
 
     min_intensity: int = tile.min().compute()  # type: ignore
     max_intensity: int = tile.max().compute()  # type: ignore
-
-    # def level_width(lvl):
-    #    return resolutions[lvl]["width"]
-
-    # def level_height(lvl):
-    #    return resolutions[lvl]["height"]
-
-    def tile_width(lvl: int):
-        return _res[lvl]["max_tile_width"]
-
-    def tile_height(lvl: int):
-        return _res[lvl]["max_tile_height"]
-
-    # num tiles in x direction
-    def nx(lvl: int):
-        return _res[lvl]["n_tiles_x"]
-
-    # idx of tile in x direction
-    def ix(lvl: int, n: int):
-        _tile_width = tile_width(lvl)
-        _img_width = _res[lvl]["width"]
-
-        n_tile_cols = ceil(_img_width/_tile_width)
-
-        return n % n_tile_cols
-
-    # num tiles in y direction
-    def ny(lvl: int):
-        return _res[lvl]["n_tiles_y"]
-
-    # idx of tile in y direction
-    def iy(lvl: int, n: int):
-        _tile_height = tile_height(lvl)
-        _img_height = _res[lvl]["height"]
-
-        n_tile_rows = ceil(_img_height/_tile_height)
-
-        return n % n_tile_rows
-
-    # num of nth values
-    def nn(lvl: int):
-        return nx(lvl) * ny(lvl)
 
     while True:
         clear_screen()
@@ -258,25 +276,27 @@ def viewer(debug=False):
             if new_nth < nn(level):
                 nth = new_nth
 
-        #  up pyramid (downscale)
+        #  down the inverted pyramid (downscale)
         elif key == "u" or key == "K":
             if level < (len(_res) - 1):
+                new_ix = ix(level, nth) // 2
+                new_iy = iy(level, nth) // 2
+
                 level += 1
 
-                new_ix = ix(level, nth)
-                new_iy = iy(level, nth)
-                new_nx = _res[level]["n_tiles_x"]
+                new_nx = nx(level)
 
                 nth = new_iy * new_nx + new_ix
 
-        # down pyramid (upscale)
+        # up the inverted pyramid (upscale)
         elif key == "d" or key == "J":
             if level > 0:
+                new_ix = ix(level, nth) * 2
+                new_iy = iy(level, nth) * 2
+
                 level = max(0, level - 1)
 
-                new_ix = ix(level, nth)
-                new_iy = iy(level, nth)
-                new_nx = _res[level]["n_tiles_x"]
+                new_nx = nx(level)
 
                 nth = new_iy * new_nx + new_ix
 
@@ -286,6 +306,9 @@ def viewer(debug=False):
             print("quit unexpectedly", "key:", key, "ord", key_ord)
             break
 
+        assert nth >= 0
+        assert nth <= nn(level), f"only {nn(level)} tiles at level {level}, got {nth}"
+
         tile = tile_n(nth=nth, frame=frame, level=level)
-        if tile is None:
-            break
+
+        assert tile is not None
