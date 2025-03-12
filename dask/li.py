@@ -144,7 +144,7 @@ def tile_n(nth: int, frame: int = 0, level: int = 0) -> zarr.Array:
 
     tile = data[level][idxs[0], idxs[1], idxs[2]]
 
-    assert 0 not in tile.shape, f"invalid shape {tile.shape}, from idxs {idxs}, level {level}, nth {nth}, nn {nn(level)}"
+    assert 0 not in tile.shape, f"invalid shape {tile.shape}, from idxs {idxs}"
 
     return tile
 
