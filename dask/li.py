@@ -184,7 +184,7 @@ def tile_n(nth: int, frame: slice = slice(0,1,1), level: int = 0) -> daskArray:
 ## DISPLAY ##
 
 
-def show(img: daskArray, fig_scale=1, min_intensities: NDArray | None=None, max_intensities: NDArray | None=None):
+def show(img: daskArray, fig_scale=1.0, min_intensities: NDArray | None=None, max_intensities: NDArray | None=None):
     '''
     width and height in inches
     default WxH: 6.4, 4.8
