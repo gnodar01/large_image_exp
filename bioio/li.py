@@ -3,34 +3,28 @@ import pprint
 import sys
 import termios
 import tty
-from importlib import reload
 from math import ceil
 
 import matplotlib.pyplot as plt
-import ometiff_metadata
-import tifffile
-import zarr
-from numpy.typing import NDArray
+import bioio
+from importlib import reload
 
-import dask.array
+from numpy.typing import NDArray
 from dask.array.core import Array as daskArray
 
-FNAME = "big_thing.ome.tiff"
+FNAME = "big_thing.tiles.ome.tif"
 __cached_meta = None
 try:
-    if data:  # type: ignore
-        print("aready loaded data")
-        reload(ometiff_metadata)
+    if img:  # type: ignore
+        print("aready loaded img")
+        reload(bioio)
+        reload(bioio.bio_image)
 except NameError:
-    print("loading data")
-    _store = tifffile.imread(FNAME, aszarr=True)
-    _cache = zarr.LRUStoreCache(_store, max_size=2**29)
-    _zobj = zarr.open(_cache, mode="r")
-    _zarr_data: list[zarr.Array] = [ # type: ignore
-        _zobj[int(dataset["path"])]
-        for dataset in _zobj.attrs["multiscales"][0]["datasets"]
-    ]
-    data: list[daskArray] = [dask.array.from_zarr(z) for z in _zarr_data] # type: ignore
+    print("loading img")
+    reload(bioio)
+    reload(bioio.bio_image)
+    print("did reload")
+    img = bioio.BioImage(FNAME)
 
 
 def full_meta(**kwargs):
