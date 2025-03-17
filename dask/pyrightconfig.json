@@ -1,3 +1,8 @@
 {
-  "python.analysis.extraPaths": ["."]
+  "venvPath": ".pixi/envs",
+  "venv": "default",
+  "include": ["."],
+  "exclude": [
+    "**/__pycache__",
+  ],
 }
