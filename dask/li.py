@@ -372,3 +372,6 @@ def viewer(debug=False):
         if reset_intensities:
             min_intensities: NDArray = tile.min(axis=(0,1), keepdims=True).compute()
             max_intensities: NDArray = tile.max(axis=(0,1), keepdims=True).compute()
+
+if __name__ == "__main__":
+    print(full_meta(max_pages=None, include_tags=True))
