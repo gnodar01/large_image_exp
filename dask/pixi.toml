@@ -24,6 +24,7 @@ zarr = ">=2.18.3,<3"
 dask = ">=2025.2.0,<2026"
 tifffile = ">=2025.2.18,<2026"
 ipyflow = ">=0.0.209,<0.0.210"
+jupytext = ">=1.17.1,<2"
 #openjdk = ">=23.0.1,<24"
 
 [pypi-dependencies]
@@ -32,4 +33,5 @@ mplterm = { git = "git+https://github.com/anntzer/mplterm" }
 ruff = ">=0.9.9, <0.10"
 autopep8 = ">=2.3.2, <3"
 xmltodict = ">=0.14.2, <0.15"
+jldracula = ">=0.2.0, <0.3"
 
