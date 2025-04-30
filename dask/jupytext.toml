@@ -1,0 +1,3 @@
+[formats]
+"nbs/" = "ipynb"
+"jpt/" = "py:percent"
