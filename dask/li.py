@@ -15,12 +15,18 @@ from numpy.typing import NDArray
 import dask.array
 from dask.array.core import Array as daskArray
 
-FNAME = "big_thing.ome.tiff"
+FNAME = os.path.abspath('.')
+if FNAME.endswith('dask'):
+    FNAME = FNAME + "/big_thing.ome.tiff"
+else:
+    FNAME = FNAME + "/../big_thing.ome.tiff"
 __cached_meta = None
 try:
     if data:  # type: ignore
         print("aready loaded data")
         reload(ometiff_metadata)
+    else:
+        print("failed to load data")
 except NameError:
     print("loading data")
     _store = tifffile.imread(FNAME, aszarr=True)
@@ -31,6 +37,7 @@ except NameError:
         for dataset in _zobj.attrs["multiscales"][0]["datasets"]
     ]
     data: list[daskArray] = [dask.array.from_zarr(z) for z in _zarr_data] # type: ignore
+    print("done loading data")
 
 
 def full_meta(**kwargs):
