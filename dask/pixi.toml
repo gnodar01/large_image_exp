@@ -34,4 +34,5 @@ ruff = ">=0.9.9, <0.10"
 autopep8 = ">=2.3.2, <3"
 xmltodict = ">=0.14.2, <0.15"
 jldracula = ">=0.2.0, <0.3"
+ndv = { version = ">=0.3.1, <0.4", extras = ["pygfx", "jupyter"] }
 
