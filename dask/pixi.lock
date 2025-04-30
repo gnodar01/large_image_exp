@@ -308,6 +308,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/1d/70/7f5af2a18a76fe92ea14675f8bd88ce53ee79e37900fa5f1a1d8e0b42998/kiwisolver-1.4.8-cp310-cp310-macosx_10_9_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/ee/b1/f70e27cf1cd76ce2a5e1aa5579d05afe3236052c6d9b9a96325bc823a17e/matplotlib-3.10.1-cp310-cp310-macosx_10_12_x86_64.whl
       - pypi: git+https://github.com/anntzer/mplterm#1d3631e01293a14ae8704c8e7dd5d670d42cf9ea
+      - pypi: https://files.pythonhosted.org/packages/ba/8e/e6271c52ac87df03ed48358793d53b67355eccaed6f29be8ed3aa451bebd/nbdotrun-0.1.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/35/ac/f47ca59ddd884750133d35020f0c1f251ed88d0e84fc350b789d92592f43/ndv-0.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ac/d3/36d8b6f84db1d97c6861351f299550bb5406fb9f9d1a368f8ec8a83c80da/psygnal-0.12.0-cp310-cp310-macosx_10_9_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/3a/d8/a211b3f85e99a0daa2ddec96c949cac6824bd305b040571b82a03dd62636/pycodestyle-2.12.1-py2.py3-none-any.whl
@@ -3103,6 +3104,11 @@ packages:
   - pkg:pypi/nbconvert?source=hash-mapping
   size: 200601
   timestamp: 1738067871724
+- pypi: https://files.pythonhosted.org/packages/ba/8e/e6271c52ac87df03ed48358793d53b67355eccaed6f29be8ed3aa451bebd/nbdotrun-0.1.0-py3-none-any.whl
+  name: nbdotrun
+  version: 0.1.0
+  sha256: 23ec9de6c8356fa521828ab89e9d53675a0459ce3b86c693866183f9fcf0d5c7
+  requires_python: '>=3.9'
 - conda: https://conda.anaconda.org/conda-forge/noarch/nbformat-5.10.4-pyhd8ed1ab_1.conda
   sha256: 7a5bd30a2e7ddd7b85031a5e2e14f290898098dc85bea5b3a5bf147c25122838
   md5: bbe1963f1e47f594070ffe87cdf612ea
