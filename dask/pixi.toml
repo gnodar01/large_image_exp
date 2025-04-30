@@ -25,6 +25,7 @@ dask = ">=2025.2.0,<2026"
 tifffile = ">=2025.2.18,<2026"
 ipyflow = ">=0.0.209,<0.0.210"
 jupytext = ">=1.17.1,<2"
+jupyter-collaboration = ">=4.0.2,<5"
 #openjdk = ">=23.0.1,<24"
 
 [pypi-dependencies]

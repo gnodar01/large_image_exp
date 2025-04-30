@@ -18,6 +18,7 @@ from ndv.models import DataWrapper, ChannelMode
 import numpy as np
 from cmap import Colormap
 from typing import Any, TypeGuard, Hashable, Mapping, Sequence
+from .. import li
 
 # %%
 data_arr = data.cells3d()
