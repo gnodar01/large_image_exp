@@ -9,6 +9,10 @@ version = "0.1.0"
 [tasks]
 ip = { cmd = "ipython", env = { MPLBACKEND = "module://imgcat" } }
 ips = { cmd = "ipython", env = { MPLBACKEND = "module://imgcat" , MPLTERM = "proto=sixel" } }
+sync_nb = 'jupytext --sync "/Users/ngogober/Developer/play/ndv/nbs/*.ipynb"'
+sync_py = 'jupytext --sync "/Users/ngogober/Developer/play/ndv/jpt/*.py"'
+launch_jl = "jupyter lab"
+clean_colab = 'rm -f "/Users/ngogober/Developer/play/ndv/.jupyter_ystore.db"'
 
 [activation]
 env = { JAVA_OPTS = "-Djna.library.path=$PIXI_PROJECT_ROOT/.pixi/envs/default/lib/", JAVA_HOME = "$PIXI_PROJECT_ROOT/.pixi/envs/dev/lib/jvm", JDK_HOME = "$PIXI_PROJECT_ROOT/.pixi/envs/dev/lib/jvm" }
