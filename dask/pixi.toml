@@ -15,12 +15,11 @@ env = { JAVA_OPTS = "-Djna.library.path=$PIXI_PROJECT_ROOT/.pixi/envs/default/li
 
 [dependencies]
 python = ">=3.9,<3.11"
-ipykernel = ">=6.29.5,<7"
-jupyter = ">=1.1.1,<2"
 ipython = ">=8.32.0,<9"
 zarr = ">=2.18.3,<3"
 dask = ">=2025.2.0,<2026"
 tifffile = ">=2025.2.18,<2026"
+ipyflow = ">=0.0.209,<0.0.210"
 #openjdk = ">=23.0.1,<24"
 
 [pypi-dependencies]
