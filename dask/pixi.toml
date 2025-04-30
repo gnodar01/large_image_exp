@@ -9,8 +9,8 @@ version = "0.1.0"
 [tasks]
 ip = { cmd = "ipython", env = { MPLBACKEND = "module://imgcat" } }
 ips = { cmd = "ipython", env = { MPLBACKEND = "module://imgcat" , MPLTERM = "proto=sixel" } }
-sync_nb = 'jupytext --sync "/Users/ngogober/Developer/play/ndv/nbs/*.ipynb"'
-sync_py = 'jupytext --sync "/Users/ngogober/Developer/play/ndv/jpt/*.py"'
+sync_nb = 'jupytext --sync "$PIXI_PROJECT_ROOT/nbs/*.ipynb"'
+sync_py = 'jupytext --sync "$PIXI_PROJECT_ROOT/jpt/*.py"'
 launch_jl = "jupyter lab"
 clean_colab = 'rm -f "/Users/ngogober/Developer/play/ndv/.jupyter_ystore.db"'
 
