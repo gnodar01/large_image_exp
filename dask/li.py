@@ -160,7 +160,7 @@ def decrement_frame(curr_frame: slice, level: int | None) -> slice:
     return set_frame(start = curr_frame.start - 1, stop = curr_frame.stop - 1, step = curr_frame.step, level = level)
 
 
-def tile_n(nth: int, frame: slice = slice(0,1,1), level: int = 0) -> daskArray:
+def tile_n(nth: int, frame: slice = slice(0,1,1), level: int = 0, do_transpose=True) -> daskArray:
     assert len(data) > level
     assert level >= 0
     _res = res()
@@ -182,7 +182,10 @@ def tile_n(nth: int, frame: slice = slice(0,1,1), level: int = 0) -> daskArray:
     idxs[col_idx] = col_slice
     idxs[frame_idx] = frame
 
-    tile = data[level][idxs[0], idxs[1], idxs[2]].transpose(row_idx, col_idx, frame_idx)
+    if do_transpose:
+        tile = data[level][idxs[0], idxs[1], idxs[2]].transpose(row_idx, col_idx, frame_idx)
+    else:
+        tile = data[level][idxs[0], idxs[1], idxs[2]]
 
     assert 0 not in tile.shape, f"invalid shape {tile.shape}, from idxs {idxs}"
 
