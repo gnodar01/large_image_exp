@@ -235,6 +235,9 @@ display(tile_up_btn, tile_down_btn, tile_left_btn, tile_right_btn)
 
 viewer.show()
 
+# %% slideshow={"slide_type": ""} editable=true
+# viewer._view.layout.children[-1].children = tuple(viewer._view.layout.children[-1].children[:-2])
+
 # %%
 for i in range(3, data_arr.shape[C]):
     viewer.display_model.luts[i].visible = True
